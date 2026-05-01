@@ -1,0 +1,17 @@
+{
+  "name": "sysmon-pro",
+  "version": "1.0.0",
+  "description": "System monitoring service for Windows — installable via Inno Setup",
+  "private": true,
+  "workspaces": [
+    "packages/server",
+    "packages/dashboard"
+  ],
+  "scripts": {
+    "dev:server": "cd packages/server && npm run dev",
+    "dev:dashboard": "cd packages/dashboard && npm run dev",
+    "build:dashboard": "cd packages/dashboard && npm run build",
+    "install-service": "node packages/server/src/service/install.js",
+    "uninstall-service": "node packages/server/src/service/uninstall.js"
+  }
+}

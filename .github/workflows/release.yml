@@ -1,0 +1,131 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - 'v*'          # triggers on v1.0.0, v1.1.0, etc.
+  workflow_dispatch:   # allow manual trigger from GitHub UI
+
+jobs:
+  build:
+    runs-on: windows-latest   # MUST be Windows to build the service + Inno Setup
+
+    steps:
+      # ── 1. Checkout ──────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. Set up Node.js ────────────────────────────────────────────────────
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: |
+            packages/server/package.json
+            packages/dashboard/package.json
+
+      # ── 3. Install dependencies ───────────────────────────────────────────────
+      - name: Install server dependencies
+        run: npm install --prefix packages/server --production
+
+      - name: Install dashboard dependencies
+        run: npm install --prefix packages/dashboard
+
+      # ── 4. Build React dashboard ──────────────────────────────────────────────
+      - name: Build dashboard
+        run: npm run build --prefix packages/dashboard
+
+      # ── 5. Download portable Node.js for bundling ─────────────────────────────
+      - name: Download portable Node.js
+        shell: pwsh
+        run: |
+          $nodeVersion = "20.12.2"
+          $url = "https://nodejs.org/dist/v$nodeVersion/node-v$nodeVersion-win-x64.zip"
+          $zip = "node-portable.zip"
+          Write-Host "Downloading Node.js $nodeVersion..."
+          Invoke-WebRequest -Uri $url -OutFile $zip
+          Expand-Archive -Path $zip -DestinationPath "node-portable"
+          New-Item -ItemType Directory -Force -Path "installer\node"
+          Copy-Item "node-portable\node-v$nodeVersion-win-x64\node.exe" "installer\node\node.exe"
+          Write-Host "Node.js portable ready at installer\node\node.exe"
+
+      # ── 6. Install Inno Setup ─────────────────────────────────────────────────
+      - name: Install Inno Setup
+        shell: pwsh
+        run: |
+          $url = "https://files.jrsoftware.org/is/6/innosetup-6.2.2.exe"
+          Invoke-WebRequest -Uri $url -OutFile "innosetup.exe"
+          Start-Process -FilePath "innosetup.exe" -ArgumentList "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART" -Wait
+          Write-Host "Inno Setup installed"
+
+      # ── 7. Create placeholder assets if not present ───────────────────────────
+      - name: Ensure asset placeholders
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path "installer\assets"
+          # If you have real assets committed, this step is a no-op.
+          # Otherwise create minimal placeholders so ISCC doesn't fail.
+          if (-not (Test-Path "installer\assets\icon.ico")) {
+            # Copy a bundled Node icon as placeholder
+            Copy-Item "installer\node\node.exe" "installer\assets\icon.ico" -ErrorAction SilentlyContinue
+          }
+
+      # ── 8. Compile Inno Setup installer ───────────────────────────────────────
+      - name: Compile installer
+        shell: pwsh
+        run: |
+          $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+          & $iscc "installer\setup.iss"
+          if ($LASTEXITCODE -ne 0) { throw "ISCC failed with exit code $LASTEXITCODE" }
+
+      # ── 9. Get version from tag ───────────────────────────────────────────────
+      - name: Get version
+        id: version
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $ver = $tag.TrimStart('v')
+          echo "version=$ver" >> $env:GITHUB_OUTPUT
+          echo "tag=$tag" >> $env:GITHUB_OUTPUT
+
+      # ── 10. Rename output ─────────────────────────────────────────────────────
+      - name: Rename installer
+        shell: pwsh
+        run: |
+          $src = "installer\dist\SysMonPro-Setup.exe"
+          $dst = "installer\dist\SysMonPro-Setup-${{ steps.version.outputs.version }}.exe"
+          Rename-Item $src $dst
+          Write-Host "Output: $dst"
+
+      # ── 11. Create GitHub Release ──────────────────────────────────────────────
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "SysMon Pro v${{ steps.version.outputs.version }}"
+          body: |
+            ## SysMon Pro v${{ steps.version.outputs.version }}
+
+            ### Installation
+            1. Download `SysMonPro-Setup-${{ steps.version.outputs.version }}.exe`
+            2. Run as **Administrator**
+            3. Follow the installer — it will register a Windows Service automatically
+            4. Open **http://localhost:3001** in your browser
+
+            ### What's included
+            - Real-time CPU, memory, disk, network monitoring
+            - Process monitor (top 10 by CPU)
+            - Alert rules with Windows toast notifications
+            - 24h metric history with charts
+            - Registers as a Windows Service (auto-start on boot)
+            - Shows in `services.msc` and Add/Remove Programs
+
+            ### Requirements
+            - Windows 10 / 11 (x64)
+            - No other dependencies — Node.js is bundled
+          files: |
+            installer/dist/SysMonPro-Setup-${{ steps.version.outputs.version }}.exe
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

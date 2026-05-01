@@ -1,0 +1,10 @@
+node_modules/
+packages/server/data/
+packages/server/logs/
+packages/dashboard/dist/
+installer/dist/
+installer/node/
+.env
+*.db
+*.log
+daemon/

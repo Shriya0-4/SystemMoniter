@@ -1,0 +1,22 @@
+{
+  "name": "sysmon-pro-server",
+  "version": "1.0.0",
+  "description": "SysMon Pro backend — Express + Socket.IO + SQLite",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+  "dependencies": {
+    "sql.js": "^1.12.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.1",
+    "express": "^4.18.2",
+    "node-notifier": "^10.0.1",
+    "socket.io": "^4.7.4",
+    "systeminformation": "^5.22.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.3"
+  }
+}
