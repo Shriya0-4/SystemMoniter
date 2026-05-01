@@ -38,13 +38,9 @@ AllowNoIcons=yes
 PrivilegesRequired=admin
 OutputDir=dist
 OutputBaseFilename=SysMonPro-Setup
-SetupIconFile=assets\icon.ico
 Compression=lzma2/ultra64
 SolidCompression=yes
 WizardStyle=modern
-WizardImageFile=assets\wizard-banner.bmp
-WizardSmallImageFile=assets\wizard-small.bmp
-UninstallDisplayIcon={app}\assets\icon.ico
 ; Create uninstall entry in Add/Remove Programs
 CreateUninstallRegKey=yes
 UninstallDisplayName={#AppName}
@@ -54,7 +50,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
 Name: "desktopicon";    Description: "{cm:CreateDesktopIcon}";    GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
-Name: "startupbrowser"; Description: "Open dashboard in browser after install"; GroupDescription: "After install:"; Flags: checked
+Name: "startupbrowser"; Description: "Open dashboard in browser after install"; GroupDescription: "After install:"
 
 [Files]
 ; Node.js runtime (portable — no system Node required on target machine)
@@ -69,18 +65,15 @@ Source: "..\packages\server\.env";    DestDir: "{app}\server";      Flags: ignor
 Source: "..\packages\dashboard\dist\*"; DestDir: "{app}\server\..\..\dashboard\dist"; Flags: ignoreversion recursesubdirs
 
 ; Assets
-Source: "assets\icon.ico";       DestDir: "{app}\assets"; Flags: ignoreversion
-Source: "assets\icon.png";       DestDir: "{app}\assets"; Flags: ignoreversion
 
 ; Service install/uninstall helpers
 Source: "service-helper\install-service.bat";   DestDir: "{app}"; Flags: ignoreversion
 Source: "service-helper\uninstall-service.bat"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{group}\Open Dashboard"; Filename: "http://localhost:{#ServicePort}"; IconFilename: "{app}\assets\icon.ico"
+Name: "{group}\Open Dashboard"; Filename: "http://localhost:{#ServicePort}"
 Name: "{group}\Uninstall {#AppName}"; Filename: "{uninstallexe}"
-Name: "{commondesktop}\{#AppName}";   Filename: "http://localhost:{#ServicePort}"; IconFilename: "{app}\assets\icon.ico"; Tasks: desktopicon
-
+Name: "{commondesktop}\{#AppName}"; Filename: "http://localhost:{#ServicePort}"; Tasks: desktopicon
 [Run]
 ; Register and start the Windows Service after files are copied
 Filename: "{app}\install-service.bat"; Parameters: """{app}"""; StatusMsg: "Registering Windows Service..."; Flags: runhidden waituntilterminated
