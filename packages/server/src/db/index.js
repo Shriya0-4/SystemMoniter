@@ -85,11 +85,7 @@ const SCHEMA = `
 // ── Init ──────────────────────────────────────────────────────
 async function initDb() {
   // Point sql.js at its WASM file explicitly — required in Node.js
-  const wasmPath = path.join(
-    require.resolve('sql.js'),
-    '../../dist/sql-wasm.wasm'
-  );
-
+ const wasmPath = require.resolve('sql.js/dist/sql-wasm.wasm');
   const SQL = await initSqlJs({
     locateFile: () => wasmPath,
   });
