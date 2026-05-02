@@ -52,9 +52,12 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon";    Description: "{cm:CreateDesktopIcon}";    GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 Name: "startupbrowser"; Description: "Open dashboard in browser after install"; GroupDescription: "After install:"
 
+
 [Files]
 ; Node.js runtime (portable — no system Node required on target machine)
 Source: "node\node.exe";         DestDir: "{app}\runtime"; Flags: ignoreversion
+Source: "..\packages\nssm\nssm.exe"; DestDir: "{app}\nssm"; Flags: ignoreversion
+
 
 ; Server source
 Source: "..\packages\server\src\*";   DestDir: "{app}\server\src";  Flags: ignoreversion recursesubdirs
@@ -62,7 +65,7 @@ Source: "..\packages\server\node_modules\*"; DestDir: "{app}\server\node_modules
 Source: "..\packages\server\.env";    DestDir: "{app}\server";      Flags: ignoreversion onlyifdoesntexist
 
 ; Built dashboard (served statically by Express)
-Source: "..\packages\dashboard\dist\*"; DestDir: "{app}\server\..\..\dashboard\dist"; Flags: ignoreversion recursesubdirs
+Source: "..\packages\dashboard\dist\*"; DestDir: "{app}\dashboard\dist"; Flags: ignoreversion recursesubdirs
 
 ; Assets
 

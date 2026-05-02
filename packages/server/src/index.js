@@ -37,7 +37,7 @@ app.use('/api/system', systemRoutes);
 app.use('/api/alerts', alertRoutes);
 
 // ── Serve built React dashboard (production) ──────────────────
-const DIST = path.join(__dirname, '../../dashboard/dist');
+const DIST = process.env.DASHBOARD_DIST || path.join(__dirname, '../../dashboard/dist');
 if (fs.existsSync(DIST)) {
   app.use(express.static(DIST));
   app.get('*', (_req, res) => res.sendFile(path.join(DIST, 'index.html')));

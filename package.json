@@ -3,10 +3,6 @@
   "version": "1.0.0",
   "description": "System monitoring service for Windows — installable via Inno Setup",
   "private": true,
-  "workspaces": [
-    "packages/server",
-    "packages/dashboard"
-  ],
   "scripts": {
     "dev:server": "cd packages/server && npm run dev",
     "dev:dashboard": "cd packages/dashboard && npm run dev",
